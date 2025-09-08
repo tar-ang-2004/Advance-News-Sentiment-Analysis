@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock-Like Sentiment Analysis Chart - News Intelligence Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', 'sans-serif'],
+                        'mono': ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: {
+                        'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
+                        'bounce-subtle': 'bounce-subtle 0.6s ease-in-out',
+                        'slide-up': 'slideUp 0.5s ease-out',
+                        'scale-in': 'scaleIn 0.4s ease-out',
+                        'glow': 'glow 2s ease-in-out infinite alternate',
+                        'trading-flash': 'trading-flash 1.5s ease-in-out',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(34, 197, 94, 0.3); }
+            50% { box-shadow: 0 0 20px rgba(34, 197, 94, 0.7); }
+        }
+        @keyframes bounce-subtle {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes scaleIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        @keyframes glow {
+            from { box-shadow: 0 0 20px rgba(99, 102, 241, 0.5); }
+            to { box-shadow: 0 0 30px rgba(99, 102, 241, 0.8); }
+        }
+        @keyframes trading-flash {
+            0% { background-color: rgba(34, 197, 94, 0.1); }
+            50% { background-color: rgba(34, 197, 94, 0.3); }
+            100% { background-color: rgba(34, 197, 94, 0.1); }
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .dark-glass {
+            background: rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .trading-panel {
+            background: linear-gradient(145deg, rgba(0, 0, 0, 0.8), rgba(17, 24, 39, 0.9));
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+        .chart-container {
+            position: relative;
+            height: 500px !important;
+            width: 100% !important;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .chart-container canvas {
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+        }
+        .sentiment-ticker {
+            animation: scroll-ticker 30s linear infinite;
+        }
+        @keyframes scroll-ticker {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        .positive-sentiment { color: #22c55e; }
+        .negative-sentiment { color: #ef4444; }
+        .neutral-sentiment { color: #6b7280; }
+        .volume-bar {
+            background: linear-gradient(to top, #1f2937 0%, #374151 50%, #4b5563 100%);
+        }
+        .bg-mesh {
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(34, 197, 94, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 25% 75%, rgba(239, 68, 68, 0.1) 0%, transparent 50%);
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white font-sans min-h-screen">
+    <!-- Background Elements -->
+    <div class="fixed inset-0 bg-mesh"></div>
+    <div class="fixed inset-0 bg-gradient-to-br from-blue-900/20 via-gray-900/40 to-green-900/20"></div>
+    
+    <!-- Navigation -->
+    <nav class="relative z-50 glass border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-2">
+                    <div class="w-10 h-10 bg-gradient-to-r from-green-500 to-blue-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-chart-line text-white text-lg"></i>
+                    </div>
+                    <span class="text-xl font-bold bg-gradient-to-r from-green-400 to-blue-400 bg-clip-text text-transparent">
+                        SentimentTrader
+                    </span>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <button onclick="window.location.href='/'" class="text-gray-300 hover:text-white transition-colors duration-300">
+                        <i class="fas fa-home mr-2"></i>
+                        Back to Main
+                    </button>
+                    <div class="text-sm text-gray-400">
+                        <i class="fas fa-clock mr-1"></i>
+                        <span id="lastUpdate">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="relative z-10 pt-8 pb-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <!-- Header Section -->
+            <div class="text-center mb-8">
+                <h1 class="text-4xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-green-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
+                    News Sentiment Trading Board
+                </h1>
+                <p class="text-xl text-gray-300 max-w-3xl mx-auto">
+                    Track sentiment trends like stock prices with real-time analysis and market-style indicators
+                </p>
+            </div>
+
+            <!-- Trading Dashboard -->
+            <div class="grid grid-cols-1 xl:grid-cols-4 gap-6 mb-8">
+                
+                <!-- Main Chart Panel -->
+                <div class="xl:col-span-3">
+                    <div class="trading-panel rounded-2xl p-6">
+                        <!-- Chart Header -->
+                        <div class="flex flex-wrap justify-between items-center mb-6">
+                            <div class="flex items-center space-x-4">
+                                <h2 class="text-2xl font-bold flex items-center">
+                                    <span class="text-green-400 mr-2">NEWS</span>
+                                    <span class="text-blue-400">SENTIMENT</span>
+                                    <span class="text-purple-400 ml-2">INDEX</span>
+                                </h2>
+                                <div class="flex items-center space-x-2">
+                                    <div id="currentSentiment" class="text-2xl font-bold positive-sentiment">+0.00</div>
+                                    <div id="sentimentChange" class="text-sm px-2 py-1 rounded bg-green-900/30 text-green-400">
+                                        <i class="fas fa-arrow-up mr-1"></i>
+                                        +0.00 (0.00%)
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Chart Controls -->
+                            <div class="flex items-center space-x-3">
+                                <select id="timeframe" onchange="updateTimeframe(this.value)" class="px-4 py-2 bg-black/40 border border-gray-600 rounded-lg text-white focus:border-blue-400">
+                                    <option value="0.04">1H</option>
+                                    <option value="0.25">6H</option>
+                                    <option value="1">1D</option>
+                                    <option value="7" selected>7D</option>
+                                    <option value="30">30D</option>
+                                </select>
+                                <button onclick="refreshData()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors duration-200">
+                                    <i class="fas fa-sync-alt mr-2"></i>
+                                    Refresh
+                                </button>
+                                <button onclick="toggleAutoRefresh()" id="autoRefreshBtn" class="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg transition-colors duration-200">
+                                    <i class="fas fa-play mr-2"></i>
+                                    Auto
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Main Chart -->
+                        <div class="chart-container mb-4">
+                            <canvas id="sentimentChart"></canvas>
+                            <div id="chartLoading" class="absolute inset-0 flex items-center justify-center">
+                                <div class="text-center">
+                                    <i class="fas fa-spinner animate-spin text-4xl text-blue-400 mb-4"></i>
+                                    <p class="text-gray-400">Loading sentiment data...</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Chart Legend -->
+                        <div class="flex flex-wrap justify-center items-center space-x-6 text-sm border-t border-gray-700 pt-4">
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                                <span>Overall Sentiment</span>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                                <span>Positive Articles</span>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                                <span>Negative Articles</span>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 bg-gray-500 rounded-full mr-2"></div>
+                                <span>Volume</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar Panel -->
+                <div class="space-y-6">
+                    
+                    <!-- Market Summary -->
+                    <div class="trading-panel rounded-2xl p-6">
+                        <h3 class="text-lg font-semibold mb-4 flex items-center">
+                            <i class="fas fa-chart-bar mr-2 text-blue-400"></i>
+                            Market Summary
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-400">Current Score</span>
+                                <span id="currentScore" class="font-semibold positive-sentiment">0.00</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-400">24h High</span>
+                                <span id="dailyHigh" class="font-semibold text-green-400">0.00</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-400">24h Low</span>
+                                <span id="dailyLow" class="font-semibold text-red-400">0.00</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-400">Volume</span>
+                                <span id="totalVolume" class="font-semibold text-blue-400">0</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-400">Volatility</span>
+                                <span id="volatility" class="font-semibold text-purple-400">0.00%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sentiment Breakdown -->
+                    <div class="trading-panel rounded-2xl p-6">
+                        <h3 class="text-lg font-semibold mb-4 flex items-center">
+                            <i class="fas fa-pie-chart mr-2 text-purple-400"></i>
+                            Sentiment Breakdown
+                        </h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center">
+                                    <div class="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                                    <span class="text-sm">Positive</span>
+                                </div>
+                                <div class="text-right">
+                                    <div id="positiveCount" class="font-semibold text-green-400">0</div>
+                                    <div id="positivePercent" class="text-xs text-gray-400">0%</div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center">
+                                    <div class="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                                    <span class="text-sm">Negative</span>
+                                </div>
+                                <div class="text-right">
+                                    <div id="negativeCount" class="font-semibold text-red-400">0</div>
+                                    <div id="negativePercent" class="text-xs text-gray-400">0%</div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center">
+                                    <div class="w-3 h-3 bg-gray-500 rounded-full mr-2"></div>
+                                    <span class="text-sm">Neutral</span>
+                                </div>
+                                <div class="text-right">
+                                    <div id="neutralCount" class="font-semibold text-gray-400">0</div>
+                                    <div id="neutralPercent" class="text-xs text-gray-400">0%</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Visual Breakdown -->
+                        <div class="mt-4">
+                            <div class="w-full bg-gray-800 rounded-full h-3 overflow-hidden">
+                                <div class="flex h-full">
+                                    <div id="positiveBar" class="bg-green-500 transition-all duration-500" style="width: 33.3%"></div>
+                                    <div id="negativeBar" class="bg-red-500 transition-all duration-500" style="width: 33.3%"></div>
+                                    <div id="neutralBar" class="bg-gray-500 transition-all duration-500" style="width: 33.4%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Market Indicators -->
+                    <div class="trading-panel rounded-2xl p-6">
+                        <h3 class="text-lg font-semibold mb-4 flex items-center">
+                            <i class="fas fa-signal mr-2 text-yellow-400"></i>
+                            Technical Indicators
+                        </h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-400">RSI (14)</span>
+                                <div class="text-right">
+                                    <span id="rsiValue" class="font-semibold">50.0</span>
+                                    <div id="rsiSignal" class="text-xs text-gray-400">Neutral</div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-400">MACD</span>
+                                <div class="text-right">
+                                    <span id="macdValue" class="font-semibold">0.00</span>
+                                    <div id="macdSignal" class="text-xs text-gray-400">Neutral</div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-400">SMA (7)</span>
+                                <div class="text-right">
+                                    <span id="smaValue" class="font-semibold">0.00</span>
+                                    <div id="smaSignal" class="text-xs text-gray-400">Neutral</div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-400">Trend</span>
+                                <div class="text-right">
+                                    <span id="trendDirection" class="font-semibold neutral-sentiment">
+                                        <i class="fas fa-minus mr-1"></i>
+                                        Sideways
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- News Ticker -->
+            <div class="trading-panel rounded-2xl p-4 mb-6 overflow-hidden">
+                <div class="flex items-center">
+                    <div class="bg-red-600 text-white px-3 py-1 rounded text-sm font-semibold mr-4 flex-shrink-0">
+                        LIVE
+                    </div>
+                    <div class="sentiment-ticker whitespace-nowrap">
+                        <span id="newsTicker" class="text-sm">
+                            Loading latest sentiment updates...
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls Panel -->
+            <div class="trading-panel rounded-2xl p-6">
+                <h3 class="text-lg font-semibold mb-4 flex items-center">
+                    <i class="fas fa-cogs mr-2 text-green-400"></i>
+                    Trading Controls
+                </h3>
+                
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <button onclick="analyzeSample()" class="px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-600 rounded-lg hover:scale-105 transition-all duration-300">
+                        <i class="fas fa-plus mr-2"></i>
+                        Add Sample Analysis
+                    </button>
+                    <button onclick="analyzeTrendingAll()" class="px-4 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg hover:scale-105 transition-all duration-300">
+                        <i class="fas fa-newspaper mr-2"></i>
+                        Analyze All Trending
+                    </button>
+                    <button onclick="clearChart()" class="px-4 py-3 bg-gradient-to-r from-red-600 to-pink-600 rounded-lg hover:scale-105 transition-all duration-300">
+                        <i class="fas fa-trash mr-2"></i>
+                        Clear Chart Data
+                    </button>
+                    <button onclick="exportData()" class="px-4 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg hover:scale-105 transition-all duration-300">
+                        <i class="fas fa-download mr-2"></i>
+                        Export Data
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='stock_sentiment_chart.js') }}"></script>
+</body>
+</html>

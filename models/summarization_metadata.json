@@ -1,0 +1,36 @@
+{
+    "model_type": "Enhanced News Summarization System",
+    "training_date": "2025-08-05T18:06:54.731191",
+    "training_articles": 9792,
+    "training_sentences": 18588,
+    "model_accuracy": 0.8606777837547068,
+    "model_f1_score": 0.7771084337349398,
+    "feature_columns": [
+        "length",
+        "position",
+        "relative_position",
+        "is_first",
+        "is_last",
+        "is_early",
+        "num_capitals",
+        "num_numbers",
+        "has_quotes",
+        "keyword_score",
+        "keyword_density",
+        "proper_noun_count",
+        "proper_noun_density"
+    ],
+    "model_files": {
+        "importance_model": "sentence_importance_model.pkl",
+        "scaler": "summarization_scaler.pkl",
+        "entity_extractor": "entity_extractor.pkl",
+        "text_analyzer": "text_analyzer.pkl",
+        "complete_system": "summarization_system.pkl"
+    },
+    "capabilities": {
+        "sentence_importance_prediction": true,
+        "entity_extraction": true,
+        "smart_summarization": true,
+        "key_details_extraction": true
+    }
+}

@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Sentiment Analysis - News Intelligence Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', 'sans-serif'],
+                        'mono': ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'gradient': 'gradient 15s ease infinite',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'bounce-slow': 'bounce 3s infinite',
+                        'slide-up': 'slideUp 0.5s ease-out',
+                        'slide-in': 'slideIn 0.6s ease-out',
+                        'scale-in': 'scaleIn 0.4s ease-out',
+                        'glow': 'glow 2s ease-in-out infinite alternate',
+                    },
+                    backgroundImage: {
+                        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+                        'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+                    },
+                    backdropBlur: {
+                        'xs': '2px',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        @keyframes gradient {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes slideIn {
+            from { transform: translateX(-100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes scaleIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        @keyframes glow {
+            from { box-shadow: 0 0 20px rgba(99, 102, 241, 0.5); }
+            to { box-shadow: 0 0 30px rgba(99, 102, 241, 0.8); }
+        }
+        .bg-mesh {
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(236, 72, 153, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 25%, rgba(168, 85, 247, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 25% 75%, rgba(14, 165, 233, 0.1) 0%, transparent 50%);
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .dark-glass {
+            background: rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .typing-cursor {
+            animation: blink 1s infinite;
+        }
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        .neural-network {
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.05) 0%, transparent 30%),
+                radial-gradient(circle at 80% 80%, rgba(236, 72, 153, 0.05) 0%, transparent 30%),
+                radial-gradient(circle at 40% 60%, rgba(168, 85, 247, 0.05) 0%, transparent 30%);
+        }
+        .chart-container {
+            position: relative;
+            height: 400px !important;
+            width: 100% !important;
+            max-width: 1000px !important;
+            margin: 0 auto !important;
+            overflow: hidden;
+        }
+        .chart-container canvas {
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            max-height: 400px !important;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white font-sans min-h-screen">
+    <!-- Background Elements -->
+    <div class="fixed inset-0 bg-mesh neural-network"></div>
+    <div class="fixed inset-0 bg-gradient-to-br from-blue-900/20 via-purple-900/20 to-pink-900/20"></div>
+    
+    <!-- Floating Particles -->
+    <div class="fixed inset-0 pointer-events-none">
+        <div class="absolute top-1/4 left-1/4 w-2 h-2 bg-blue-400 rounded-full animate-float opacity-60"></div>
+        <div class="absolute top-3/4 right-1/4 w-1 h-1 bg-purple-400 rounded-full animate-float opacity-40" style="animation-delay: -2s;"></div>
+        <div class="absolute top-1/2 right-1/3 w-1.5 h-1.5 bg-pink-400 rounded-full animate-float opacity-50" style="animation-delay: -4s;"></div>
+        <div class="absolute bottom-1/4 left-1/3 w-2 h-2 bg-indigo-400 rounded-full animate-float opacity-30" style="animation-delay: -6s;"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 right-0 z-50 glass border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-2 animate-slide-in">
+                    <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-chart-bar text-white text-lg"></i>
+                    </div>
+                    <span class="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                        SentimentAI
+                    </span>
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="#home" class="text-gray-300 hover:text-white transition-colors duration-300 flex items-center">
+                        <i class="fas fa-home mr-1"></i>
+                        Home
+                    </a>
+                    <a href="#analyze" class="text-gray-300 hover:text-white transition-colors duration-300 flex items-center">
+                        <i class="fas fa-magic mr-1"></i>
+                        Analyze
+                    </a>
+                    <a href="#trending" class="text-gray-300 hover:text-white transition-colors duration-300 flex items-center">
+                        <i class="fas fa-fire mr-1"></i>
+                        Trending
+                    </a>
+                    <a href="#history" class="text-gray-300 hover:text-white transition-colors duration-300 flex items-center">
+                        <i class="fas fa-chart-line mr-1"></i>
+                        Chart
+                    </a>
+                    <a href="#about" class="text-gray-300 hover:text-white transition-colors duration-300 flex items-center">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        About
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="relative z-10 min-h-screen flex items-center justify-center px-4 pt-16">
+        <div class="max-w-6xl mx-auto text-center">
+            <div class="animate-slide-up">
+                <h1 class="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent leading-tight">
+                    AI-Powered News
+                    <br>
+                    <span class="inline-block">Sentiment Analysis</span>
+                </h1>
+                <p class="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
+                    Harness the power of advanced machine learning to decode emotions, extract insights, and understand the sentiment behind any news article or text.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                    <button onclick="scrollToAnalyze()" class="group relative px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full font-semibold text-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/25">
+                        <span class="relative z-10">Start Analyzing</span>
+                        <div class="absolute inset-0 bg-gradient-to-r from-blue-700 to-purple-700 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <i class="fas fa-arrow-right ml-2 transition-transform duration-300 group-hover:translate-x-1"></i>
+                    </button>
+                    <button onclick="openDemoVideo()" class="px-8 py-4 glass rounded-full font-semibold text-lg transition-all duration-300 hover:scale-105 border border-white/20 hover:border-white/40">
+                        <i class="fas fa-play mr-2"></i>
+                        Watch Demo
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Feature Cards -->
+            <div class="grid md:grid-cols-3 gap-6 mt-16 animate-slide-up" style="animation-delay: 0.3s;">
+                <div class="glass rounded-2xl p-6 hover:scale-105 transition-all duration-300 group">
+                    <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                        <i class="fas fa-bolt text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">Lightning Fast</h3>
+                    <p class="text-gray-400">Get instant sentiment analysis results with our optimized ML models.</p>
+                </div>
+                <div class="glass rounded-2xl p-6 hover:scale-105 transition-all duration-300 group">
+                    <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                        <i class="fas fa-chart-line text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">Accurate Insights</h3>
+                    <p class="text-gray-400">State-of-the-art NLP models ensure high accuracy in sentiment detection.</p>
+                </div>
+                <div class="glass rounded-2xl p-6 hover:scale-105 transition-all duration-300 group">
+                    <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-teal-500 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                        <i class="fas fa-shield-alt text-white text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">Secure & Private</h3>
+                    <p class="text-gray-400">Your data is processed securely with enterprise-grade protection.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Analysis Section -->
+    <section id="analyze" class="relative z-10 py-20 px-4">
+        <div class="max-w-4xl mx-auto">
+            <div class="text-center mb-12 animate-slide-up">
+                <h2 class="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                    Analyze Your Content
+                </h2>
+                <p class="text-xl text-gray-300">
+                    Paste your news article or any text below to get instant sentiment analysis
+                </p>
+            </div>
+
+            <!-- Analysis Card -->
+            <div class="glass rounded-3xl p-8 mb-8 animate-scale-in">
+                <form id="sentimentForm" class="space-y-6">
+                    <!-- Input Methods -->
+                    <div class="flex flex-wrap gap-4 mb-6">
+                        <button type="button" onclick="setInputMethod('text')" id="textBtn" class="input-method-btn active px-6 py-3 rounded-full font-medium transition-all duration-300">
+                            <i class="fas fa-keyboard mr-2"></i>
+                            Text Input
+                        </button>
+                        <button type="button" onclick="setInputMethod('file')" id="fileBtn" class="input-method-btn px-6 py-3 rounded-full font-medium transition-all duration-300">
+                            <i class="fas fa-file-upload mr-2"></i>
+                            File Upload
+                        </button>
+                        <button type="button" onclick="setInputMethod('video')" id="videoBtn" class="input-method-btn px-6 py-3 rounded-full font-medium transition-all duration-300">
+                            <i class="fas fa-video mr-2"></i>
+                            Video Analysis
+                        </button>
+                    </div>
+
+                    <!-- Text Input -->
+                    <div id="textInput" class="input-section">
+                        <!-- Text Content -->
+                        <label class="block text-lg font-medium mb-3 text-gray-200">
+                            <i class="fas fa-edit mr-2 text-blue-400"></i>
+                            Enter your text or news article
+                        </label>
+                        <textarea 
+                            name="text" 
+                            id="textArea"
+                            rows="8" 
+                            class="w-full p-6 bg-black/20 border border-white/20 rounded-2xl text-white placeholder-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 transition-all duration-300 resize-none"
+                            placeholder="Paste your news article or any text here for sentiment analysis..."
+                            oninput="updateCharCount(this)"
+                        ></textarea>
+                        <div class="flex justify-between items-center mt-2 text-sm text-gray-400">
+                            <span id="charCount">0 characters</span>
+                            <span class="text-xs">Minimum 10 characters required • Supports any language</span>
+                        </div>
+                    </div>
+
+                    <!-- File Upload -->
+                    <div id="fileInput" class="input-section hidden">
+                        <label class="block text-lg font-medium mb-3 text-gray-200">
+                            <i class="fas fa-cloud-upload-alt mr-2 text-green-400"></i>
+                            Upload text file
+                        </label>
+                        <div class="border-2 border-dashed border-white/20 rounded-2xl p-8 text-center hover:border-green-400 transition-colors duration-300">
+                            <input type="file" id="fileUpload" class="hidden" accept=".txt,.doc,.docx,.pdf,.jpg,.jpeg,.png,.gif,.bmp,.tiff,.webp">
+                            <div onclick="document.getElementById('fileUpload').click()" class="cursor-pointer">
+                                <i class="fas fa-cloud-upload-alt text-4xl text-green-400 mb-4"></i>
+                                <p class="text-lg">Click to upload or drag and drop</p>
+                                <p class="text-sm text-gray-400 mt-2">Supports text files (.txt, .doc, .docx, .pdf) and images (.jpg, .png, .gif, etc.)</p>
+                                <p class="text-xs text-blue-300 mt-1">📸 Images will be processed with OCR to extract text</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Video Upload -->
+                    <div id="videoInput" class="input-section hidden">
+                        <label class="block text-lg font-medium mb-3 text-gray-200">
+                            <i class="fas fa-video mr-2 text-purple-400"></i>
+                            Upload video file for transcription
+                        </label>
+                        <div class="border-2 border-dashed border-white/20 rounded-2xl p-8 text-center hover:border-purple-400 transition-colors duration-300">
+                            <input type="file" id="videoUpload" class="hidden" accept=".mp4,.avi,.mkv,.mov,.wmv,.flv,.webm,.m4v">
+                            <div onclick="document.getElementById('videoUpload').click()" class="cursor-pointer">
+                                <i class="fas fa-video text-4xl text-purple-400 mb-4"></i>
+                                <p class="text-lg">Click to upload video file</p>
+                                <p class="text-sm text-gray-400 mt-2">Supports .mp4, .avi, .mkv, .mov, .wmv, .flv, .webm, .m4v</p>
+                                <p class="text-xs text-yellow-400 mt-1">Video will be transcribed using speech-to-text</p>
+                            </div>
+                        </div>
+                        <div id="videoTranscribeProgress" class="hidden mt-4">
+                            <div class="flex items-center justify-center space-x-2 text-blue-400">
+                                <i class="fas fa-microphone fa-pulse"></i>
+                                <span>Transcribing audio from video...</span>
+                            </div>
+                            <div class="w-full bg-gray-600 rounded-full h-2 mt-2">
+                                <div id="transcribeProgressBar" class="bg-blue-400 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Advanced Options -->
+                    <div class="glass rounded-2xl p-6">
+                        <button type="button" onclick="toggleAdvanced()" class="flex items-center justify-between w-full text-left">
+                            <span class="text-lg font-medium">
+                                <i class="fas fa-cog mr-2 text-yellow-400"></i>
+                                Advanced Options
+                            </span>
+                            <i id="advancedIcon" class="fas fa-chevron-down transition-transform duration-300"></i>
+                        </button>
+                        
+                        <div id="advancedOptions" class="hidden mt-6 space-y-4">
+                            <div class="grid md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-2 text-gray-300">Include Summary</label>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" name="include_summary" class="sr-only peer" checked>
+                                        <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                    </label>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2 text-gray-300">Generate Word Cloud</label>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" name="include_wordcloud" class="sr-only peer">
+                                        <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <button 
+                            type="submit" 
+                            id="analyzeBtn"
+                            class="flex-1 py-4 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl font-semibold text-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl hover:shadow-blue-500/25 disabled:opacity-50 disabled:cursor-not-allowed group"
+                        >
+                            <span id="btnText" class="flex items-center justify-center">
+                                <i class="fas fa-magic mr-3 group-hover:animate-spin"></i>
+                                Analyze Sentiment
+                            </span>
+                            <div id="loadingSpinner" class="hidden">
+                                <i class="fas fa-spinner animate-spin mr-3"></i>
+                                Analyzing...
+                            </div>
+                        </button>
+                        
+                        <button 
+                            type="button" 
+                            id="clearBtn"
+                            onclick="clearForm()"
+                            class="sm:w-auto w-full py-4 px-6 glass rounded-2xl font-semibold text-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl border border-white/20 hover:border-red-400/50 group"
+                        >
+                            <span class="flex items-center justify-center">
+                                <i class="fas fa-eraser mr-3 group-hover:animate-pulse text-red-400"></i>
+                                Clear
+                            </span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Results Section -->
+            <div id="resultsContainer" class="hidden">
+                <!-- Results will be dynamically inserted here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Trending News Section -->
+    <section id="trending" class="relative z-10 py-20 px-4">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-12 animate-slide-up">
+                <h2 class="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent">
+                    Trending News
+                </h2>
+                <p class="text-xl text-gray-300">
+                    Real-time sentiment analysis of trending news articles
+                </p>
+            </div>
+
+            <!-- News Categories -->
+            <div class="flex flex-wrap justify-center gap-4 mb-8">
+                <button onclick="sentimentAnalyzer.loadTrendingNews('general')" class="news-category-btn active px-6 py-3 rounded-full font-medium transition-all duration-300" data-category="general">
+                    <i class="fas fa-globe mr-2"></i>
+                    General
+                </button>
+                <button onclick="sentimentAnalyzer.loadTrendingNews('business')" class="news-category-btn px-6 py-3 rounded-full font-medium transition-all duration-300" data-category="business">
+                    <i class="fas fa-chart-line mr-2"></i>
+                    Business
+                </button>
+                <button onclick="sentimentAnalyzer.loadTrendingNews('technology')" class="news-category-btn px-6 py-3 rounded-full font-medium transition-all duration-300" data-category="technology">
+                    <i class="fas fa-microchip mr-2"></i>
+                    Technology
+                </button>
+                <button onclick="sentimentAnalyzer.loadTrendingNews('health')" class="news-category-btn px-6 py-3 rounded-full font-medium transition-all duration-300" data-category="health">
+                    <i class="fas fa-heart mr-2"></i>
+                    Health
+                </button>
+                <button onclick="sentimentAnalyzer.loadTrendingNews('sports')" class="news-category-btn px-6 py-3 rounded-full font-medium transition-all duration-300" data-category="sports">
+                    <i class="fas fa-futbol mr-2"></i>
+                    Sports
+                </button>
+                <button onclick="sentimentAnalyzer.loadTrendingNews('entertainment')" class="news-category-btn px-6 py-3 rounded-full font-medium transition-all duration-300" data-category="entertainment">
+                    <i class="fas fa-film mr-2"></i>
+                    Entertainment
+                </button>
+            </div>
+
+            <!-- Trending News Container -->
+            <div class="glass rounded-3xl p-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-2xl font-semibold flex items-center">
+                        <i class="fas fa-fire mr-3 text-orange-400"></i>
+                        Trending Articles
+                    </h3>
+                    <button onclick="refreshTrendingNews()" id="refreshBtn" class="px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg hover:scale-105 transition-all duration-300">
+                        <i class="fas fa-refresh mr-2"></i>
+                        Refresh
+                    </button>
+                </div>
+                
+                <div id="trendingContainer">
+                    <div class="text-center py-12 text-gray-400">
+                        <i class="fas fa-newspaper text-4xl mb-4"></i>
+                        <p>Loading trending news articles...</p>
+                    </div>
+                </div>
+
+                <!-- Sentiment Analytics Dashboard -->
+                <div id="sentimentDashboard" class="mt-8 hidden">
+                    <h4 class="text-xl font-semibold mb-6 flex items-center">
+                        <i class="fas fa-chart-pie mr-3 text-purple-400"></i>
+                        Sentiment Analytics
+                    </h4>
+                    <div class="grid md:grid-cols-3 gap-6">
+                        <div class="bg-gradient-to-r from-green-900/20 to-emerald-900/20 rounded-2xl p-6 border border-green-500/20">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="text-green-400 font-semibold">Positive</span>
+                                <i class="fas fa-smile text-green-400 text-xl"></i>
+                            </div>
+                            <div class="text-3xl font-bold text-green-400" id="positiveCount">0</div>
+                            <div class="text-sm text-gray-400 mt-2">articles</div>
+                        </div>
+                        <div class="bg-gradient-to-r from-red-900/20 to-pink-900/20 rounded-2xl p-6 border border-red-500/20">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="text-red-400 font-semibold">Negative</span>
+                                <i class="fas fa-frown text-red-400 text-xl"></i>
+                            </div>
+                            <div class="text-3xl font-bold text-red-400" id="negativeCount">0</div>
+                            <div class="text-sm text-gray-400 mt-2">articles</div>
+                        </div>
+                        <div class="bg-gradient-to-r from-blue-900/20 to-purple-900/20 rounded-2xl p-6 border border-blue-500/20">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="text-blue-400 font-semibold">Average Confidence</span>
+                                <i class="fas fa-chart-bar text-blue-400 text-xl"></i>
+                            </div>
+                            <div class="text-3xl font-bold text-blue-400" id="avgConfidence">0%</div>
+                            <div class="text-sm text-gray-400 mt-2">confidence</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- History Section -->
+    <section id="history" class="relative z-10 py-20 px-4 bg-black/20">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-green-400 to-blue-400 bg-clip-text text-transparent">
+                    Analysis History
+                </h2>
+                <p class="text-xl text-gray-300">
+                    Track your previous sentiment analyses and insights
+                </p>
+            </div>
+
+            <!-- Sentiment Distribution Chart -->
+            <div class="glass rounded-3xl p-8 mb-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-2xl font-semibold flex items-center">
+                        <i class="fas fa-chart-line mr-3 text-purple-400"></i>
+                        Live Sentiment Trends
+                        <span class="ml-2 text-sm text-gray-400 font-normal">(Real-time Analysis)</span>
+                    </h3>
+                    <div class="flex gap-3">
+                        <select id="chartDays" onchange="sentimentAnalyzer.updateSentimentChart(this.value)" class="px-4 py-2 bg-black/20 border border-white/20 rounded-lg text-white focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20">
+                            <option value="0.0104">Last 15 minutes</option>
+                            <option value="0.0208">Last 30 minutes</option>
+                            <option value="0.0417">Last 60 minutes</option>
+                            <option value="0.25">Last 6 hours</option>
+                            <option value="1">Last 24 hours</option>
+                            <option value="7" selected>Last 7 days</option>
+                            <option value="14">Last 14 days</option>
+                            <option value="30">Last 30 days</option>
+                        </select>
+                        <button onclick="clearLiveAnalysisData()" class="px-4 py-2 bg-gradient-to-r from-red-500 to-pink-500 rounded-lg hover:scale-105 transition-all duration-300" title="Clear live analysis data">
+                            <i class="fas fa-trash mr-2"></i>
+                            Clear Data
+                        </button>
+                        <button onclick="sentimentAnalyzer.refreshSentimentChart()" class="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg hover:scale-105 transition-all duration-300">
+                            <i class="fas fa-refresh mr-2"></i>
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Chart Container -->
+                <div id="sentimentChartContainer" class="mb-6">
+                    <div class="chart-container">
+                        <canvas id="sentimentChart" style="display: none;"></canvas>
+                    </div>
+                    <div id="chartLoadingState" class="text-center py-12 text-gray-400">
+                        <i class="fas fa-chart-line text-4xl mb-4"></i>
+                        <p>Loading sentiment trends...</p>
+                    </div>
+                </div>
+
+                <!-- Chart Description -->
+                <div class="mt-4 p-4 bg-blue-900/20 border border-blue-500/20 rounded-xl">
+                    <div class="flex items-start">
+                        <i class="fas fa-info-circle text-blue-400 mr-3 mt-1"></i>
+                        <div>
+                            <h4 class="text-lg font-semibold text-blue-200 mb-2">Live Analysis Chart</h4>
+                            <p class="text-gray-300 text-sm leading-relaxed">
+                                This chart shows sentiment trends <strong>only from live analyses</strong> performed through this web interface. 
+                                It tracks real-time sentiment analysis results as you analyze text or files. 
+                                The chart updates automatically when you perform new analyses and provides trend indicators for sentiment changes over time.
+                            </p>
+                            <p class="text-gray-400 text-xs mt-2">
+                                💡 Start analyzing content to see data appear on this chart. Use "Clear Data" to reset the chart for a fresh start.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart Legend -->
+                <div class="flex flex-wrap justify-center gap-6 text-sm">
+                    <div class="flex items-center">
+                        <div class="w-4 h-4 bg-gradient-to-r from-green-500 to-emerald-500 rounded mr-2"></div>
+                        <span class="text-gray-300">Positive Sentiment</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-4 h-4 bg-gradient-to-r from-red-500 to-pink-500 rounded mr-2"></div>
+                        <span class="text-gray-300">Negative Sentiment</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-4 h-4 bg-gradient-to-r from-blue-500 to-purple-500 rounded mr-2"></div>
+                        <span class="text-gray-300">Overall Score</span>
+                    </div>
+                    <div class="flex items-center ml-6">
+                        <i class="fas fa-arrow-up text-green-400 mr-1"></i>
+                        <span class="text-gray-300 mr-4">Trending Up</span>
+                        <i class="fas fa-arrow-down text-red-400 mr-1"></i>
+                        <span class="text-gray-300 mr-4">Trending Down</span>
+                        <i class="fas fa-minus text-gray-400 mr-1"></i>
+                        <span class="text-gray-300">Neutral</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass rounded-3xl p-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-2xl font-semibold">Recent Analyses</h3>
+                    <div class="flex gap-3">
+                        <button onclick="loadHistory()" class="px-4 py-2 bg-gradient-to-r from-green-500 to-blue-500 rounded-lg hover:scale-105 transition-all duration-300">
+                            <i class="fas fa-refresh mr-2"></i>
+                            Refresh
+                        </button>
+                        <button onclick="clearHistory()" class="px-4 py-2 bg-gradient-to-r from-red-500 to-pink-500 rounded-lg hover:scale-105 transition-all duration-300">
+                            <i class="fas fa-trash mr-2"></i>
+                            Clear History
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="historyContainer">
+                    <div class="text-center py-12 text-gray-400">
+                        <i class="fas fa-history text-4xl mb-4"></i>
+                        <p>No analysis history yet. Start analyzing to see your results here!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="relative z-10 py-20 px-4 bg-black/20">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-12 animate-slide-up">
+                <h2 class="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+                    About SentimentAI
+                </h2>
+                <p class="text-xl text-gray-300 max-w-3xl mx-auto">
+                    Pioneering the future of sentiment analysis with cutting-edge AI technology
+                </p>
+            </div>
+
+            <!-- Mission Statement -->
+            <div class="glass rounded-3xl p-8 mb-8 animate-scale-in">
+                <div class="text-center mb-8">
+                    <div class="w-16 h-16 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <i class="fas fa-rocket text-white text-2xl"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold mb-4 text-white">Our Mission</h3>
+                    <p class="text-lg text-gray-300 leading-relaxed max-w-4xl mx-auto">
+                        We believe that understanding sentiment is key to making informed decisions. SentimentAI democratizes advanced natural language processing, making powerful sentiment analysis accessible to everyone—from researchers and journalists to businesses and individuals.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Features Grid -->
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+                <div class="glass rounded-2xl p-6 hover:scale-105 transition-all duration-300 group animate-slide-in">
+                    <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                        <i class="fas fa-brain text-white text-xl"></i>
+                    </div>
+                    <h4 class="text-xl font-semibold mb-3 text-white">Advanced AI Models</h4>
+                    <p class="text-gray-400">
+                        Our sentiment analysis is powered by state-of-the-art machine learning models trained on millions of text samples for maximum accuracy.
+                    </p>
+                </div>
+
+                <div class="glass rounded-2xl p-6 hover:scale-105 transition-all duration-300 group animate-slide-in" style="animation-delay: 0.1s;">
+                    <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                        <i class="fas fa-shield-check text-white text-xl"></i>
+                    </div>
+                    <h4 class="text-xl font-semibold mb-3 text-white">Privacy First</h4>
+                    <p class="text-gray-400">
+                        Your data is processed securely and never stored permanently. We prioritize your privacy with enterprise-grade security measures.
+                    </p>
+                </div>
+
+                <div class="glass rounded-2xl p-6 hover:scale-105 transition-all duration-300 group animate-slide-in" style="animation-delay: 0.2s;">
+                    <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                        <i class="fas fa-zap text-white text-xl"></i>
+                    </div>
+                    <h4 class="text-xl font-semibold mb-3 text-white">Real-time Analysis</h4>
+                    <p class="text-gray-400">
+                        Get instant sentiment analysis results with our optimized processing pipeline that delivers insights in milliseconds.
+                    </p>
+                </div>
+
+                <div class="glass rounded-2xl p-6 hover:scale-105 transition-all duration-300 group animate-slide-in" style="animation-delay: 0.3s;">
+                    <div class="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                        <i class="fas fa-globe text-white text-xl"></i>
+                    </div>
+                    <h4 class="text-xl font-semibold mb-3 text-white">Multi-format Support</h4>
+                    <p class="text-gray-400">
+                        Analyze text input, uploaded files, and trending news articles with seamless format detection and processing.
+                    </p>
+                </div>
+
+                <div class="glass rounded-2xl p-6 hover:scale-105 transition-all duration-300 group animate-slide-in" style="animation-delay: 0.4s;">
+                    <div class="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                        <i class="fas fa-chart-bar text-white text-xl"></i>
+                    </div>
+                    <h4 class="text-xl font-semibold mb-3 text-white">Rich Analytics</h4>
+                    <p class="text-gray-400">
+                        Beyond sentiment scores, get detailed confidence metrics, summaries, word clouds, and comprehensive analysis reports.
+                    </p>
+                </div>
+
+                <div class="glass rounded-2xl p-6 hover:scale-105 transition-all duration-300 group animate-slide-in" style="animation-delay: 0.5s;">
+                    <div class="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                        <i class="fas fa-mobile-alt text-white text-xl"></i>
+                    </div>
+                    <h4 class="text-xl font-semibold mb-3 text-white">Responsive Design</h4>
+                    <p class="text-gray-400">
+                        Beautiful, modern interface that works flawlessly across all devices—desktop, tablet, and mobile.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Technology Stack -->
+            <div class="glass rounded-3xl p-8 mb-8">
+                <div class="text-center mb-8">
+                    <h3 class="text-3xl font-bold mb-4 text-white flex items-center justify-center">
+                        <i class="fas fa-code mr-3 text-cyan-400"></i>
+                        Technology Stack
+                    </h3>
+                    <p class="text-gray-300">Built with modern technologies for optimal performance and reliability</p>
+                </div>
+
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="bg-black/20 rounded-xl p-4 text-center hover:scale-105 transition-all duration-300">
+                        <i class="fab fa-python text-4xl text-blue-400 mb-3"></i>
+                        <h5 class="text-lg font-semibold text-white mb-2">Python</h5>
+                        <p class="text-sm text-gray-400">Backend & ML Processing</p>
+                    </div>
+
+                    <div class="bg-black/20 rounded-xl p-4 text-center hover:scale-105 transition-all duration-300">
+                        <i class="fas fa-flask text-4xl text-green-400 mb-3"></i>
+                        <h5 class="text-lg font-semibold text-white mb-2">Flask</h5>
+                        <p class="text-sm text-gray-400">Web Framework</p>
+                    </div>
+
+                    <div class="bg-black/20 rounded-xl p-4 text-center hover:scale-105 transition-all duration-300">
+                        <i class="fab fa-js-square text-4xl text-yellow-400 mb-3"></i>
+                        <h5 class="text-lg font-semibold text-white mb-2">JavaScript</h5>
+                        <p class="text-sm text-gray-400">Interactive Frontend</p>
+                    </div>
+
+                    <div class="bg-black/20 rounded-xl p-4 text-center hover:scale-105 transition-all duration-300">
+                        <div class="text-4xl text-cyan-400 mb-3 font-bold">TW</div>
+                        <h5 class="text-lg font-semibold text-white mb-2">Tailwind CSS</h5>
+                        <p class="text-sm text-gray-400">Modern Styling</p>
+                    </div>
+
+                    <div class="bg-black/20 rounded-xl p-4 text-center hover:scale-105 transition-all duration-300">
+                        <i class="fas fa-robot text-4xl text-purple-400 mb-3"></i>
+                        <h5 class="text-lg font-semibold text-white mb-2">NLTK</h5>
+                        <p class="text-sm text-gray-400">Natural Language Processing</p>
+                    </div>
+
+                    <div class="bg-black/20 rounded-xl p-4 text-center hover:scale-105 transition-all duration-300">
+                        <i class="fas fa-chart-line text-4xl text-orange-400 mb-3"></i>
+                        <h5 class="text-lg font-semibold text-white mb-2">Scikit-learn</h5>
+                        <p class="text-sm text-gray-400">Machine Learning</p>
+                    </div>
+
+                    <div class="bg-black/20 rounded-xl p-4 text-center hover:scale-105 transition-all duration-300">
+                        <i class="fas fa-database text-4xl text-green-400 mb-3"></i>
+                        <h5 class="text-lg font-semibold text-white mb-2">SQLite</h5>
+                        <p class="text-sm text-gray-400">Data Storage</p>
+                    </div>
+
+                    <div class="bg-black/20 rounded-xl p-4 text-center hover:scale-105 transition-all duration-300">
+                        <i class="fas fa-cloud text-4xl text-blue-400 mb-3"></i>
+                        <h5 class="text-lg font-semibold text-white mb-2">REST API</h5>
+                        <p class="text-sm text-gray-400">News Integration</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Stats -->
+            <div class="grid md:grid-cols-4 gap-6 mb-8">
+                <div class="glass rounded-2xl p-6 text-center hover:scale-105 transition-all duration-300">
+                    <div class="text-4xl font-bold text-cyan-400 mb-2" id="accuracyStat">86%</div>
+                    <div class="text-gray-300 font-medium">Model Accuracy</div>
+                </div>
+
+                <div class="glass rounded-2xl p-6 text-center hover:scale-105 transition-all duration-300">
+                    <div class="text-4xl font-bold text-green-400 mb-2" id="speedStat">&lt;1s</div>
+                    <div class="text-gray-300 font-medium">Analysis Speed</div>
+                </div>
+
+                <div class="glass rounded-2xl p-6 text-center hover:scale-105 transition-all duration-300">
+                    <div class="text-4xl font-bold text-purple-400 mb-2" id="formatsStat">5+</div>
+                    <div class="text-gray-300 font-medium">Input Formats</div>
+                </div>
+
+                <div class="glass rounded-2xl p-6 text-center hover:scale-105 transition-all duration-300">
+                    <div class="text-4xl font-bold text-orange-400 mb-2" id="languagesStat">99%</div>
+                    <div class="text-gray-300 font-medium">English Text Support</div>
+                </div>
+            </div>
+
+            <!-- Call to Action -->
+            <div class="text-center">
+                <div class="glass rounded-3xl p-8">
+                    <h3 class="text-3xl font-bold mb-4 text-white">Ready to Get Started?</h3>
+                    <p class="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+                        Experience the power of AI-driven sentiment analysis. Start analyzing your content now and unlock valuable insights.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <button onclick="scrollToAnalyze()" class="px-8 py-4 bg-gradient-to-r from-cyan-600 to-blue-600 rounded-full font-semibold text-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-cyan-500/25">
+                            <i class="fas fa-rocket mr-2"></i>
+                            Start Analyzing
+                        </button>
+                        <button onclick="document.getElementById('trending').scrollIntoView({ behavior: 'smooth' })" class="px-8 py-4 glass rounded-full font-semibold text-lg transition-all duration-300 hover:scale-105 border border-white/20 hover:border-white/40">
+                            <i class="fas fa-fire mr-2"></i>
+                            View Trending News
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="relative z-10 py-12 px-4 border-t border-white/10">
+        <div class="max-w-6xl mx-auto text-center">
+            <div class="flex items-center justify-center space-x-2 mb-4">
+                <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-brain text-white text-sm"></i>
+                </div>
+                <span class="text-lg font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                    SentimentAI
+                </span>
+            </div>
+            <p class="text-gray-400 mb-4">
+                Advanced AI-powered sentiment analysis for the modern world
+            </p>
+            <div class="flex justify-center space-x-6 text-gray-400">
+                <a href="#" class="hover:text-white transition-colors duration-300">Privacy</a>
+                <a href="#" class="hover:text-white transition-colors duration-300">Terms</a>
+                <a href="#" class="hover:text-white transition-colors duration-300">Contact</a>
+            </div>
+            <p class="text-gray-500 text-sm mt-6">
+                © 2025 SentimentAI. All rights reserved.
+            </p>
+        </div>
+    </footer>
+
+    <!-- Demo Video Modal -->
+    <div id="demo-video-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 hidden">
+        <div class="bg-gray-900 rounded-2xl p-6 max-w-4xl w-full mx-4 relative">
+            <button onclick="closeDemoVideo()" class="absolute top-4 right-4 text-white hover:text-gray-300 text-2xl z-10">
+                <i class="fas fa-times"></i>
+            </button>
+            <h3 class="text-2xl font-bold text-white mb-4 text-center">Sentiment Analysis Demo</h3>
+            <div class="relative">
+                <video id="demo-video" controls class="w-full rounded-xl" preload="metadata">
+                    <source src="{{ url_for('static', filename='videos/demo.mp4') }}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </div>
+            <p class="text-gray-400 text-center mt-4">
+                Watch how our AI-powered sentiment analysis works in real-time
+            </p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='ultra_modern_sentiment.js') }}"></script>
+</body>
+</html>

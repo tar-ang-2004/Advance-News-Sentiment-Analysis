@@ -1,0 +1,23 @@
+{
+    "best_model": "Logistic Regression",
+    "model_performance": {
+        "accuracy": 0.8604630533132263,
+        "precision": 0.863880974992086,
+        "recall": 0.8844595689515475,
+        "f1_score": 0.874049163263672,
+        "roc_auc": 0.9341270205773378
+    },
+    "training_data_size": 45092,
+    "test_data_size": 11273,
+    "feature_count": 10000,
+    "classes": [
+        "negative",
+        "positive"
+    ],
+    "model_files": {
+        "model": "best_sentiment_model_logistic_regression.pkl",
+        "vectorizer": "tfidf_vectorizer.pkl",
+        "label_encoder": "label_encoder.pkl",
+        "preprocessing": "preprocessing_utils.py"
+    }
+}
