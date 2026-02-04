@@ -386,22 +386,6 @@ We welcome contributions! Here's how you can help:
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
-
-- **NLTK Team** for natural language processing tools
-- **Scikit-learn** for machine learning algorithms
-- **Flask Team** for the web framework
-- **Google Cloud** for translation and speech services
-- **News providers** (CNN, BBC, Reuters, NPR, NYT) for RSS feeds
-- **Tesseract OCR** for image text extraction
-
-## 📞 Support
-
-For support, please:
-1. Check the [troubleshooting section](#-troubleshooting)
-2. Search [existing issues](../../issues)
-3. Create a [new issue](../../issues/new) if needed
-
 ---
 
 ## 🎯 Quick Demo
@@ -410,8 +394,8 @@ For support, please:
 2. **Visit**: http://localhost:5000
 3. **Try analyzing**: "The new technology breakthrough promises to revolutionize healthcare"
 4. **Expected result**: Positive sentiment with high confidence
-5. **Explore charts**: Visit http://localhost:5000/stock-chart
 
 ---
 
-*Made with ❤️ for better understanding of news sentiment and public opinion analysis*
+*Made for better understanding of news sentiment and public opinion analysis*
+
